@@ -5,6 +5,8 @@ import streamlit as st
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
+st.set_page_config(page_title="FutureBrew RAG 客服", page_icon="☕")
+
 # ===== 配置 =====
 OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL_NAME = "deepseek-r1:8b"
@@ -58,17 +60,19 @@ def ollama_chat(system_prompt: str, user_prompt: str, retries: int = 8) -> str:
                 content = (r.json().get("message", {}) or {}).get("content", "").strip()
                 if content:
                     return content
-                # 空回答兜底再来一次
+
                 payload["options"]["num_predict"] = 768
                 r2 = requests.post(OLLAMA_URL, json=payload, timeout=180)
                 if r2.status_code == 200:
                     return (r2.json().get("message", {}) or {}).get("content", "").strip()
                 last_err = f"HTTP {r2.status_code}: {r2.text}"
+
             elif r.status_code == 503:
                 time.sleep(1.2 * attempt)
                 continue
             else:
                 last_err = f"HTTP {r.status_code}: {r.text}"
+
         except Exception as e:
             last_err = str(e)
             time.sleep(1.2 * attempt)
@@ -76,7 +80,6 @@ def ollama_chat(system_prompt: str, user_prompt: str, retries: int = 8) -> str:
     return f"（调用 Ollama 失败：{last_err}）"
 
 def retrieve_docs(question: str):
-    # 查询增强：退款/取消更偏向 FAQ
     if ("退款" in question) or ("取消" in question):
         query = question + " 退款 取消 政策 订单"
         allowed = {"faq.txt", "product_manual.txt"}
@@ -95,50 +98,54 @@ def retrieve_docs(question: str):
 
     return docs
 
-# ===== UI =====
-st.set_page_config(page_title="FutureBrew RAG 客服", page_icon="☕", layout="centered")
-st.title("☕ FutureBrew RAG 客服（本地 Ollama + 向量检索）")
-st.caption("输入问题 → 检索知识库 → 调用本地大模型生成客服回答，并展示引用证据。")
+# ===== Chat UI =====
+st.title("☕ FutureBrew AI 客服")
+st.caption("本地 Ollama + 向量检索的 RAG 智能客服 Demo")
 
-question = st.text_input("请输入你的问题（例如：退款政策是什么？）", value="退款政策是什么？")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-col1, col2 = st.columns([1, 1])
-with col1:
-    topk = st.slider("检索证据条数", min_value=2, max_value=5, value=3)
-with col2:
-    show_context = st.checkbox("显示拼接后的上下文（调试）", value=False)
+# 显示历史消息（历史轮次只显示纯文本）
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
-if st.button("提问 🚀"):
-    if not question.strip():
-        st.warning("先输入一个问题🙂")
-    else:
-        docs = retrieve_docs(question.strip())[:topk]
-        context = build_context(docs)
+if prompt := st.chat_input("问点什么，比如：退款政策是什么？"):
+    # 用户消息
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-        user_prompt = f"""【资料】
+    # RAG 检索
+    docs = retrieve_docs(prompt)
+    context = build_context(docs)
+
+    user_prompt = f"""【资料】
 {context}
 
 【问题】
-{question}
+{prompt}
 
 【要求】
 1) 只用资料回答，不要编造。
-2) 若资料不足，必须明确说“资料中未找到明确说明”。
-3) 输出固定为 3 行以内要点（制作前/制作后/异常情况或建议）。
-请输出最终答复："""
+2) 若资料不足，必须说“资料中未找到明确说明”。
+3) 输出固定为3行以内要点。
+"""
 
-        with st.spinner("正在检索 + 生成回答..."):
+    # 模型回答
+    with st.chat_message("assistant"):
+        with st.spinner("思考中..."):
             answer = ollama_chat(SYSTEM_PROMPT, user_prompt)
 
-        st.subheader("🤖 客服回答")
-        st.write(answer if answer.strip() else "（模型返回空内容，建议再点一次提问或降低模型压力）")
+        st.markdown(answer)
 
-        st.subheader("📌 引用证据")
-        for i, d in enumerate(docs, start=1):
-            src = d.metadata.get("source", "unknown")
-            st.markdown(f"**[{i}] 来源：`{src}`**")
-            st.write(d.page_content[:600] + ("..." if len(d.page_content) > 600 else ""))
+        with st.expander("📌 查看引用证据"):
+            for i, d in enumerate(docs, start=1):
+                src = d.metadata.get("source", "unknown")
+                snippet = d.page_content[:300]
+                if len(d.page_content) > 300:
+                    snippet += "..."
+                st.markdown(f"**[{i}] 来源：{src}**")
+                st.write(snippet)
 
-        if show_context:
-            st.subheader("🧩 拼接上下文（调试）")
-            st.code(context)
+    st.session_state.messages.append({"role": "assistant", "content": answer})
