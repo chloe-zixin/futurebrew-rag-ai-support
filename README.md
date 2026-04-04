@@ -1,66 +1,124 @@
 # ☕ FutureBrew RAG AI Support
 
-A local RAG-based customer support assistant built with Streamlit, Chroma, HuggingFace embeddings, and Ollama.
+> A **production-style local RAG AI support demo** for coffee-shop customer service, featuring semantic retrieval, source-grounded answers, and full prompt-context observability.
 
 ---
 
 ## 🧠 System Architecture
 
-![Architecture](./assets/architecture.png)
+![System Architecture](./assets/architecture.png)
 
 ---
 
-## 🚀 Overview
+## 🖥️ Demo Preview
 
-This project implements a **local Retrieval-Augmented Generation (RAG)** system for an AI coffee shop customer support scenario.
+### 💬 Chat UI Overview
 
-It retrieves relevant knowledge from a local document database and uses a **local large language model (LLM)** via Ollama to generate structured, evidence-grounded answers.
+![Chat UI Overview](./assets/chat-ui-overview.png)
+
+### 🔍 Retrieval Evidence & Source Traceability
+
+![Retrieval Evidence](./assets/retrieval-evidence.png)
+
+### 🧪 Debug Context Observability
+
+![Debug Context](./assets/debug-context-view.png)
 
 ---
 
-## ✨ Features
+## 🚀 Project Overview
 
-* 📚 Local knowledge base (TXT documents)
-* 🔍 Semantic retrieval with Chroma vector database
-* 🧠 HuggingFace embeddings (bge-small-zh)
-* 🤖 Local LLM inference with Ollama (DeepSeek-R1)
-* 🌐 Streamlit web UI (chat-style interface)
-* 📌 Evidence citation display (expandable)
-* 🎛 Adjustable retrieval count
-* 🧪 Debug mode (view full context)
+FutureBrew is a **local Retrieval-Augmented Generation (RAG) AI support system** designed for a simulated coffee-shop customer-service scenario.
+
+The system retrieves relevant business knowledge from a local document corpus and uses a **fully local large language model powered by Ollama + DeepSeek-R1** to generate **evidence-grounded, hallucination-resistant responses**.
+
+Unlike a simple chatbot demo, this project emphasizes:
+
+* 🔍 **semantic retrieval transparency**
+* 📌 **source-level evidence traceability**
+* 🧪 **LLM input context observability**
+* ⚙️ **local-first deployment workflow**
+* 🌐 **interactive product-style Streamlit UI**
+
+This makes it highly suitable as an **AI application engineering / RAG system demo project**.
+
+---
+
+## ✨ Core Features
+
+* 📚 Local TXT-based knowledge base
+* 🔍 Chroma semantic vector retrieval
+* 🧠 HuggingFace embeddings (`BAAI/bge-small-zh-v1.5`)
+* 🤖 Fully local inference with Ollama + DeepSeek-R1 8B
+* 🌐 Productized Streamlit chat-style UI
+* 📌 Evidence source display
+* 🧩 Expandable retrieved chunk inspection
+* 🧪 Debug Mode for prompt context visibility
+* 🎛 Adjustable Top-K retrieval control
+* ⚡ Fully local and privacy-friendly deployment
+
+---
+
+## 🔄 RAG Workflow Pipeline
+
+```text
+User Query
+   ↓
+Semantic Retrieval (Top-K)
+   ↓
+Source Chunk Aggregation
+   ↓
+Prompt Context Assembly
+   ↓
+Local LLM Inference (Ollama)
+   ↓
+Grounded Answer + Evidence + Debug Context
+```
 
 ---
 
 ## 🧱 Project Structure
 
 ```text
-rag_project/
+futurebrew-rag-ai-support/
 ├── app/
 │   ├── __init__.py
-│   ├── main.py          # Streamlit chat UI
-│   └── rag.py           # RAG pipeline logic
-├── documents/           # Knowledge base files
-├── vector_db/           # Chroma vector DB (ignored by Git)
-├── build_vector_db.py   # Build embeddings
-├── split_documents.py   # Text splitting
-├── test_retrieval.py    # Retrieval testing
+│   ├── main.py
+│   └── rag.py
+├── assets/
+│   ├── architecture.png
+│   ├── chat-ui-overview.png
+│   ├── retrieval-evidence.png
+│   └── debug-context-view.png
+├── documents/
+│   ├── company_intro.txt
+│   ├── faq.txt
+│   ├── menu_recipes.txt
+│   ├── product_manual.txt
+│   ├── promotions.txt
+│   └── training_guide.txt
+├── vector_db/
+├── build_vector_db.py
+├── split_documents.py
+├── test_retrieval.py
 ├── requirements.txt
-├── README.md
+└── README.md
 ```
 
 ---
 
 ## ⚙️ How It Works
 
-1. Load local text documents
-2. Split into chunks
-3. Convert to embeddings
-4. Store in Chroma vector DB
-5. Retrieve top-k relevant chunks
-6. Build context for LLM
-7. Send prompt to local LLM (Ollama)
-8. Generate structured answer
-9. Display answer + evidence in UI
+1. Load local business knowledge documents
+2. Split documents into semantic chunks
+3. Convert chunks into vector embeddings
+4. Persist vectors into Chroma DB
+5. Retrieve Top-K relevant chunks
+6. Aggregate chunk sources
+7. Build LLM-ready prompt context
+8. Send context to local Ollama HTTP API
+9. Generate grounded answer
+10. Render answer + evidence + debug context in UI
 
 ---
 
@@ -68,64 +126,76 @@ rag_project/
 
 ### 1️⃣ Activate virtual environment
 
+```bash
 .\venv\Scripts\Activate
+```
 
----
+### 2️⃣ Start Ollama
 
-### 2️⃣ Start Ollama (local LLM)
-
+```bash
 ollama run deepseek-r1:8b
+```
 
----
+### 3️⃣ Launch Streamlit UI
 
-### 3️⃣ Launch the web UI
-
+```bash
 streamlit run app/main.py
+```
 
 Open browser:
 
-[http://localhost:8501](http://localhost:8501)
+```text
+http://localhost:8501
+```
 
 ---
 
 ## 💬 Example Questions
 
 * 退款政策是什么？
-* 是否支持更换牛奶类型？
+* 是否支持燕麦奶 / 豆奶替换？
 * 制作需要多长时间？
+* 当前有哪些促销活动？
+* 会员优惠如何使用？
 
 ---
 
-## 🧾 Example Output
+## 🎯 Engineering Highlights
 
-The system returns:
+### 🔍 Retrieval Observability
 
-* Structured answer (3 lines)
-* Evidence sources from knowledge base
+Every response can display:
 
-Example:
+* evidence source files
+* retrieved chunks
+* source-level chunk mapping
 
-制作前：用户可在订单生成前取消，全额退款
-制作后：已制作订单不支持退款
-异常情况/建议：请在制作前及时取消订单
+This improves **trustworthiness and debugging efficiency**.
 
----
+### 🧪 Prompt Transparency
 
-## ⚠️ Notes
+Debug Mode reveals:
 
-* venv/ and vector_db/ are excluded from Git
-* Ollama must be running before asking questions
-* First run may be slower due to model loading
+* full retrieved context
+* exact prompt payload sent into LLM
+* chunk ordering behavior
 
----
+This provides strong **RAG observability engineering signals**.
 
-## 🔮 Future Improvements
+### 🔒 Local-First AI Workflow
 
-* Faster lightweight models (Qwen, etc.)
-* Streaming response output
-* Collapsible evidence UI
-* FastAPI backend refactor
-* Multi-user support
+The entire pipeline runs locally:
+
+* local embeddings
+* local vector DB
+* local LLM
+* local UI
+
+Ideal for:
+
+* privacy-sensitive demos
+* offline AI applications
+* low-cost inference workflows
 
 ---
 
@@ -138,10 +208,25 @@ Example:
 * HuggingFace Embeddings
 * Ollama
 * DeepSeek-R1 8B
+* Requests (HTTP API)
+* BAAI/bge-small-zh-v1.5
+
+---
+
+## 🔮 Future Improvements
+
+* ⚡ streaming token output
+* 🚀 FastAPI backend refactor
+* 👥 multi-user session support
+* 🐳 Docker deployment
+* 📊 retrieval metrics dashboard
+* 🧠 hybrid reranking
+* 📁 PDF / DOC knowledge ingestion
+* 🔍 citation confidence scoring
 
 ---
 
 ## 👤 Author
 
-Catherine
-AI Engineering / System-Oriented Developer
+**Catherine**
+AI Engineering · RAG Systems · AI Product Workflow
