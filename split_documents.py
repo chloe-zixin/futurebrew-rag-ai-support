@@ -4,8 +4,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 DOCS_PATH = "documents"
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=800,
-    chunk_overlap=100
+    chunk_size=500,
+    chunk_overlap=80
 )
 
 all_chunks = []

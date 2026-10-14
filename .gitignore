@@ -3,3 +3,8 @@ vector_db/
 __pycache__/
 *.pyc
 .env
+.env.local
+.env.*.local
+.DS_Store
+*.log
+project_structure.txt
